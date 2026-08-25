@@ -8,7 +8,7 @@ from packaging.requirements import Requirement
 from packaging.utils import NormalizedName
 from packaging.version import Version
 
-from fromager import build_environment, context
+from fromager import build_environment, context, wheels
 from fromager.packagesettings import (
     Annotations,
     BuildDirectory,
@@ -699,8 +699,6 @@ def test_get_wheel_server_urls_version_specific(
     testdata_context: context.WorkContext,
 ) -> None:
     """get_wheel_server_urls uses version-specific URL when version given."""
-    from fromager import wheels
-
     req = Requirement("test-pkg")
     # cpu variant: default URL is https://wheel.test/simple,
     # version 2.9.0 overrides to https://mirror.test/simple

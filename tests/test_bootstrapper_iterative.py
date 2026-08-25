@@ -646,7 +646,12 @@ class TestPhaseStart:
         with patch.object(
             tmp_context,
             "package_build_info",
-            return_value=Mock(pre_built=True, is_pre_built=Mock(return_value=True)),
+            return_value=Mock(
+                pre_built=True,
+                is_pre_built=Mock(return_value=True),
+                wheel_server_url=None,
+                get_wheel_server_url=Mock(return_value=None),
+            ),
         ):
             result = item.run(bt)
 

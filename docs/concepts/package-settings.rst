@@ -88,6 +88,9 @@ layers override earlier ones:
    │     (update_extra_environ can mutate env vars)   │
    └──────────────────────────────────────────────────┘
 
+.. versionadded:: 0.95.0
+   Step 4a: version-specific variant overrides (``versions`` mapping).
+
 For environment variables specifically, the merge order within a
 single ``get_extra_environ()`` call is: parallel-jobs settings, build
 environment paths, package-level ``env``, then variant-level ``env``.

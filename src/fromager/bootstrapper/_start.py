@@ -122,11 +122,16 @@ class Start(Phase):
         wi.pbi_pre_built = pbi.is_pre_built(wi.resolved_version)
         wi.exclusive_build = pbi.exclusive_build
 
-        if wi.pbi_pre_built != pbi.pre_built:
+        version_url = pbi.get_wheel_server_url(wi.resolved_version)
+        variant_url = pbi.wheel_server_url
+        needs_re_resolve = wi.pbi_pre_built != pbi.pre_built or (
+            wi.pbi_pre_built and version_url != variant_url
+        )
+        if needs_re_resolve:
             logger.info(
-                f"{wi.req} {wi.resolved_version}: version-specific pre_built "
-                f"override ({wi.pbi_pre_built}) differs from variant default "
-                f"({pbi.pre_built}), re-resolving URL"
+                f"{wi.req} {wi.resolved_version}: version-specific override "
+                f"(pre_built={wi.pbi_pre_built}, url={version_url}) differs "
+                f"from variant default, re-resolving URL"
             )
             new_url = _re_resolve_url(
                 bt.ctx,
