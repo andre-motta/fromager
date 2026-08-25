@@ -726,7 +726,7 @@ def test_variant_info_versions_none_yaml() -> None:
         "test-none-versions",
         "variants:\n  cpu:\n    versions:\n",
     )
-    vi = ps.variants["cpu"]
+    vi = ps.variants[Variant("cpu")]
     assert vi.versions == {}
 
 
@@ -736,7 +736,7 @@ def test_variant_info_versions_omitted() -> None:
         "test-no-versions",
         "variants:\n  cpu:\n    pre_built: true\n",
     )
-    vi = ps.variants["cpu"]
+    vi = ps.variants[Variant("cpu")]
     assert vi.versions == {}
 
 
