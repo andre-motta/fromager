@@ -667,39 +667,77 @@ def test_is_pre_built_hook_overrides_yaml(
 
     # Hook returns True for 2.8.0 (YAML says False)
     with patch(
-        "fromager.overrides.find_override_method",
-        return_value=lambda *, version, variant: True,
+        "fromager.overrides.find_and_invoke",
+        return_value=True,
     ):
         assert pbi.is_pre_built(Version("2.8.0")) is True
 
     # Hook returns False for 2.9.0 (YAML says True)
     with patch(
-        "fromager.overrides.find_override_method",
-        return_value=lambda *, version, variant: False,
+        "fromager.overrides.find_and_invoke",
+        return_value=False,
     ):
         assert pbi.is_pre_built(Version("2.9.0")) is False
 
     # Hook returns None (defers to YAML)
     with patch(
-        "fromager.overrides.find_override_method",
-        return_value=lambda *, version, variant: None,
+        "fromager.overrides.find_and_invoke",
+        return_value=None,
     ):
         assert pbi.is_pre_built(Version("2.9.0")) is True
         assert pbi.is_pre_built(Version("2.8.0")) is False
 
-    # No hook (returns None from find_override_method)
-    with patch(
-        "fromager.overrides.find_override_method",
-        return_value=None,
-    ):
-        assert pbi.is_pre_built(Version("2.9.0")) is True
-
     # Without version, hook is not consulted
     with patch(
-        "fromager.overrides.find_override_method",
-    ) as mock_find:
+        "fromager.overrides.find_and_invoke",
+    ) as mock_invoke:
         pbi.is_pre_built()
-        mock_find.assert_not_called()
+        mock_invoke.assert_not_called()
+
+
+def test_get_wheel_server_urls_version_specific(
+    testdata_context: context.WorkContext,
+) -> None:
+    """get_wheel_server_urls uses version-specific URL when version given."""
+    from fromager import wheels
+
+    req = Requirement("test-pkg")
+    # cpu variant: default URL is https://wheel.test/simple,
+    # version 2.9.0 overrides to https://mirror.test/simple
+    urls_default = wheels.get_wheel_server_urls(
+        testdata_context, req, cache_wheel_server_url=None
+    )
+    assert urls_default == ["https://wheel.test/simple"]
+
+    urls_versioned = wheels.get_wheel_server_urls(
+        testdata_context, req, cache_wheel_server_url=None, version=Version("2.9.0")
+    )
+    assert urls_versioned == ["https://mirror.test/simple"]
+
+    urls_other = wheels.get_wheel_server_urls(
+        testdata_context, req, cache_wheel_server_url=None, version=Version("3.0.0")
+    )
+    assert urls_other == ["https://wheel.test/simple"]
+
+
+def test_variant_info_versions_none_yaml() -> None:
+    """Bare ``versions:`` key in YAML (parsed as None) produces empty dict."""
+    ps = PackageSettings.from_string(
+        "test-none-versions",
+        "variants:\n  cpu:\n    versions:\n",
+    )
+    vi = ps.variants["cpu"]
+    assert vi.versions == {}
+
+
+def test_variant_info_versions_omitted() -> None:
+    """Omitting ``versions`` entirely produces empty dict."""
+    ps = PackageSettings.from_string(
+        "test-no-versions",
+        "variants:\n  cpu:\n    pre_built: true\n",
+    )
+    vi = ps.variants["cpu"]
+    assert vi.versions == {}
 
 
 def test_settings_list(testdata_context: context.WorkContext) -> None:

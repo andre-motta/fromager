@@ -31,6 +31,15 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _default_is_pre_built(
+    *,
+    version: Version,
+    variant: str,
+) -> bool | None:
+    """Default ``is_pre_built`` hook returns ``None`` to defer to YAML config."""
+    return None
+
+
 def get_available_memory_gib() -> float:
     """available virtual memory in GiB"""
     return psutil.virtual_memory().available / (1024**3)
@@ -162,11 +171,11 @@ class PackageBuildInfo:
 
     @property
     def pre_built(self) -> bool:
-        """Does the variant use pre-build wheels?"""
-        vi = self._ps.variants.get(self.variant)
-        if vi is not None:
-            return vi.pre_built
-        return False
+        """Does the variant use pre-build wheels?
+
+        Delegates to :meth:`is_pre_built` with no version.
+        """
+        return self.is_pre_built()
 
     def is_pre_built(self, version: Version | None = None) -> bool:
         """Version-aware pre-built check.
@@ -183,13 +192,15 @@ class PackageBuildInfo:
         if vi is None:
             return False
         if version is not None:
-            hook_fn = overrides.find_override_method(self.package, "is_pre_built")
-            if hook_fn is not None:
-                result = overrides.invoke(
-                    hook_fn, version=version, variant=self.variant
-                )
-                if result is not None:
-                    return bool(result)
+            result = overrides.find_and_invoke(
+                self.package,
+                "is_pre_built",
+                _default_is_pre_built,
+                version=version,
+                variant=self.variant,
+            )
+            if result is not None:
+                return bool(result)
             pv = typing.cast(PackageVersion, Version(version.public))
             vs = vi.versions.get(pv)
             if vs is not None and vs.pre_built is not None:
@@ -198,11 +209,11 @@ class PackageBuildInfo:
 
     @property
     def wheel_server_url(self) -> str | None:
-        """Alternative package index for pre-build wheel"""
-        vi = self._ps.variants.get(self.variant)
-        if vi is not None and vi.wheel_server_url is not None:
-            return str(vi.wheel_server_url)
-        return None
+        """Alternative package index for pre-build wheel.
+
+        Delegates to :meth:`get_wheel_server_url` with no version.
+        """
+        return self.get_wheel_server_url()
 
     def get_wheel_server_url(self, version: Version | None = None) -> str | None:
         """Version-aware wheel server URL.
