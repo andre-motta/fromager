@@ -177,7 +177,7 @@ class PackageBuildInfo:
         2. Version-specific YAML setting
         3. Variant-wide default
 
-        .. versionadded:: 0.90.0
+        .. versionadded:: 0.95.0
         """
         vi = self._ps.variants.get(self.variant)
         if vi is None:
@@ -210,7 +210,7 @@ class PackageBuildInfo:
         Returns the version-specific URL if defined, otherwise
         falls back to the variant-wide default.
 
-        .. versionadded:: 0.90.0
+        .. versionadded:: 0.95.0
         """
         vi = self._ps.variants.get(self.variant)
         if vi is None:

@@ -470,7 +470,7 @@ def get_wheel_server_urls(
     When *version* is given, version-specific ``wheel_server_url``
     overrides are checked first.
 
-    .. versionchanged:: 0.90.0
+    .. versionchanged:: 0.95.0
        Added *version* parameter for version-specific URL lookup.
     """
     pbi = ctx.package_build_info(req)

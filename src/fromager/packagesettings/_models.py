@@ -458,7 +458,7 @@ class VersionSpecificSettings(pydantic.BaseModel):
     specific package versions.  When a field is ``None``, the
     variant-wide default is used.
 
-    .. versionadded:: 0.90.0
+    .. versionadded:: 0.95.0
 
     ::
 
@@ -519,7 +519,7 @@ class VariantInfo(pydantic.BaseModel):
     Version-specific settings take precedence over variant defaults
     when present.
 
-    .. versionadded:: 0.90.0
+    .. versionadded:: 0.95.0
     """
 
     # TODO

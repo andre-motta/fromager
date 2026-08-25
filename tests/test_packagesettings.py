@@ -658,6 +658,50 @@ def test_build_tag_version_specific_prebuilt(
     assert pbi.build_tag(Version("2.9.0")) == ()
 
 
+def test_is_pre_built_hook_overrides_yaml(
+    testdata_context: context.WorkContext,
+) -> None:
+    """Plugin hook takes precedence over YAML version-specific settings."""
+    pbi = testdata_context.settings.package_build_info(TEST_PKG)
+    assert pbi.variant == "cpu"
+
+    # Hook returns True for 2.8.0 (YAML says False)
+    with patch(
+        "fromager.overrides.find_override_method",
+        return_value=lambda *, version, variant: True,
+    ):
+        assert pbi.is_pre_built(Version("2.8.0")) is True
+
+    # Hook returns False for 2.9.0 (YAML says True)
+    with patch(
+        "fromager.overrides.find_override_method",
+        return_value=lambda *, version, variant: False,
+    ):
+        assert pbi.is_pre_built(Version("2.9.0")) is False
+
+    # Hook returns None (defers to YAML)
+    with patch(
+        "fromager.overrides.find_override_method",
+        return_value=lambda *, version, variant: None,
+    ):
+        assert pbi.is_pre_built(Version("2.9.0")) is True
+        assert pbi.is_pre_built(Version("2.8.0")) is False
+
+    # No hook (returns None from find_override_method)
+    with patch(
+        "fromager.overrides.find_override_method",
+        return_value=None,
+    ):
+        assert pbi.is_pre_built(Version("2.9.0")) is True
+
+    # Without version, hook is not consulted
+    with patch(
+        "fromager.overrides.find_override_method",
+    ) as mock_find:
+        pbi.is_pre_built()
+        mock_find.assert_not_called()
+
+
 def test_settings_list(testdata_context: context.WorkContext) -> None:
     assert testdata_context.settings.list_overrides() == {
         TEST_COOLDOWN_PKG,
