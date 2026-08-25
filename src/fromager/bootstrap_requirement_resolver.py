@@ -12,8 +12,7 @@ import typing
 
 from packaging.requirements import Requirement
 from packaging.utils import NormalizedName, canonicalize_name
-from packaging.version import InvalidVersion
-from packaging.version import Version
+from packaging.version import InvalidVersion, Version
 
 from . import finders, resolver, sources, wheels
 from .dependency_graph import DependencyGraph

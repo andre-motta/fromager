@@ -612,7 +612,9 @@ def test_is_pre_built_version_specific(
     assert pbi.pre_built is False
     assert pbi.is_pre_built() is False
     assert pbi.is_pre_built(Version("2.9.0")) is True
+    assert pbi.is_pre_built(Version("2.9.0+cpu")) is True
     assert pbi.is_pre_built(Version("2.8.0")) is False
+    assert pbi.is_pre_built(Version("2.8.0+local")) is False
     assert pbi.is_pre_built(Version("3.0.0")) is False
 
     # rocm variant: pre_built=True by default, but 1.0.0 is pre_built=False
@@ -639,6 +641,9 @@ def test_get_wheel_server_url_version_specific(
     assert pbi.wheel_server_url == "https://wheel.test/simple"
     assert pbi.get_wheel_server_url() == "https://wheel.test/simple"
     assert pbi.get_wheel_server_url(Version("2.9.0")) == "https://mirror.test/simple"
+    assert (
+        pbi.get_wheel_server_url(Version("2.9.0+cpu")) == "https://mirror.test/simple"
+    )
     assert pbi.get_wheel_server_url(Version("2.8.0")) == "https://wheel.test/simple"
     assert pbi.get_wheel_server_url(Version("3.0.0")) == "https://wheel.test/simple"
 

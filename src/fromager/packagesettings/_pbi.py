@@ -190,7 +190,7 @@ class PackageBuildInfo:
                 )
                 if result is not None:
                     return bool(result)
-            pv = typing.cast(PackageVersion, version)
+            pv = typing.cast(PackageVersion, Version(version.public))
             vs = vi.versions.get(pv)
             if vs is not None and vs.pre_built is not None:
                 return vs.pre_built
@@ -216,7 +216,7 @@ class PackageBuildInfo:
         if vi is None:
             return None
         if version is not None:
-            pv = typing.cast(PackageVersion, version)
+            pv = typing.cast(PackageVersion, Version(version.public))
             vs = vi.versions.get(pv)
             if vs is not None and vs.wheel_server_url is not None:
                 return str(vs.wheel_server_url)
