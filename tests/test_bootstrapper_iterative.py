@@ -882,7 +882,7 @@ class TestReResolveUrl:
         original_url = item.work_item.source_url
 
         mock_pbi = Mock(
-            pre_built=True,
+            pre_built=False,
             is_pre_built=Mock(return_value=True),
             exclusive_build=False,
             wheel_server_url=None,
@@ -894,10 +894,11 @@ class TestReResolveUrl:
             patch(
                 "fromager.bootstrapper._start._re_resolve_url",
                 return_value=None,
-            ),
+            ) as mock_re_resolve,
         ):
             item.run(bt)
 
+        mock_re_resolve.assert_called_once()
         assert item.work_item.source_url == original_url
 
 

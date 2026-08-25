@@ -96,36 +96,15 @@ class Start(Phase):
 
         wi.build_sdist_only = bt.sdist_only and not wi.is_build_requirement_context()
 
-        # Add to graph before the seen-check so every parent-to-dep edge
-        # is recorded, even when the package was already processed.
-        if wi.req_type != RequirementType.TOP_LEVEL:
-            bt.add_to_graph(
-                wi.req,
-                wi.req_type,
-                wi.resolved_version,
-                wi.source_url,
-                wi.parent,
-            )
-
-        if bt.has_been_seen(wi.req, wi.resolved_version, wi.build_sdist_only):
-            logger.debug(
-                f"redundant {wi.req_type} dependency {wi.req} "
-                f"({wi.resolved_version}, sdist_only={wi.build_sdist_only}) "
-                f"for {bt.explain}"
-            )
-            return []
-        bt.mark_as_seen(wi.req, wi.resolved_version, wi.build_sdist_only)
-
-        logger.info(
-            f"new {wi.req_type} dependency {wi.req} resolves to {wi.resolved_version}"
-        )
-
         # Must set pbi_pre_built before constructing PrepareSource so that
         # PrepareSource.background_work() immediately sees the correct value.
         pbi = bt.ctx.package_build_info(wi.req)
         wi.pbi_pre_built = pbi.is_pre_built(wi.resolved_version)
         wi.exclusive_build = pbi.exclusive_build
 
+        # Re-resolve URL before graph insertion so the graph stores the
+        # final URL, and before the seen-check so duplicate parents still
+        # get their edge recorded with the correct URL.
         version_url = pbi.get_wheel_server_url(wi.resolved_version)
         variant_url = pbi.wheel_server_url
         needs_re_resolve = wi.pbi_pre_built != pbi.pre_built or (
@@ -152,5 +131,29 @@ class Start(Phase):
                     f"{wi.req} {wi.resolved_version}: could not re-resolve URL "
                     f"for pre_built={wi.pbi_pre_built}, using original"
                 )
+
+        # Add to graph after URL finalization but before the seen-check
+        # so every parent-to-dep edge is recorded with the correct URL.
+        if wi.req_type != RequirementType.TOP_LEVEL:
+            bt.add_to_graph(
+                wi.req,
+                wi.req_type,
+                wi.resolved_version,
+                wi.source_url,
+                wi.parent,
+            )
+
+        if bt.has_been_seen(wi.req, wi.resolved_version, wi.build_sdist_only):
+            logger.debug(
+                f"redundant {wi.req_type} dependency {wi.req} "
+                f"({wi.resolved_version}, sdist_only={wi.build_sdist_only}) "
+                f"for {bt.explain}"
+            )
+            return []
+        bt.mark_as_seen(wi.req, wi.resolved_version, wi.build_sdist_only)
+
+        logger.info(
+            f"new {wi.req_type} dependency {wi.req} resolves to {wi.resolved_version}"
+        )
 
         return [PrepareSource(wi)]
