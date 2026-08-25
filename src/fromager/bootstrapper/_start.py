@@ -39,12 +39,15 @@ def _re_resolve_url(
             cache_wheel_server_url=cache_wheel_server_url,
             version=resolved_version,
         )
-        url, _ = wheels.resolve_prebuilt_wheel(
-            ctx=ctx,
-            req=pinned_req,
-            wheel_server_urls=wheel_server_urls,
-            req_type=req_type,
-        )
+        try:
+            url, _ = wheels.resolve_prebuilt_wheel(
+                ctx=ctx,
+                req=pinned_req,
+                wheel_server_urls=wheel_server_urls,
+                req_type=req_type,
+            )
+        except ExceptionGroup:
+            return None
         return str(url)
     else:
         pbi = ctx.package_build_info(req)
@@ -93,6 +96,17 @@ class Start(Phase):
 
         wi.build_sdist_only = bt.sdist_only and not wi.is_build_requirement_context()
 
+        # Add to graph before the seen-check so every parent-to-dep edge
+        # is recorded, even when the package was already processed.
+        if wi.req_type != RequirementType.TOP_LEVEL:
+            bt.add_to_graph(
+                wi.req,
+                wi.req_type,
+                wi.resolved_version,
+                wi.source_url,
+                wi.parent,
+            )
+
         if bt.has_been_seen(wi.req, wi.resolved_version, wi.build_sdist_only):
             logger.debug(
                 f"redundant {wi.req_type} dependency {wi.req} "
@@ -138,15 +152,5 @@ class Start(Phase):
                     f"{wi.req} {wi.resolved_version}: could not re-resolve URL "
                     f"for pre_built={wi.pbi_pre_built}, using original"
                 )
-
-        # Add to graph after re-resolution so the graph has the final URL
-        if wi.req_type != RequirementType.TOP_LEVEL:
-            bt.add_to_graph(
-                wi.req,
-                wi.req_type,
-                wi.resolved_version,
-                wi.source_url,
-                wi.parent,
-            )
 
         return [PrepareSource(wi)]
