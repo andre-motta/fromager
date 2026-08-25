@@ -12,6 +12,7 @@ import typing
 
 from packaging.requirements import Requirement
 from packaging.utils import NormalizedName, canonicalize_name
+from packaging.version import InvalidVersion
 from packaging.version import Version
 
 from . import finders, resolver, sources, wheels
@@ -27,11 +28,15 @@ logger = logging.getLogger(__name__)
 def _extract_pinned_version(req: Requirement) -> Version | None:
     """Return the version if *req* is pinned to exactly one (``==``).
 
-    Returns ``None`` for range specifiers, extras-only, or empty specifiers.
+    Returns ``None`` for range specifiers, wildcard pins (``==1.*``),
+    extras-only, or empty specifiers.
     """
     specs = list(req.specifier)
-    if len(specs) == 1 and specs[0].operator == "==":
-        return Version(specs[0].version)
+    if len(specs) == 1 and specs[0].operator == "==" and "*" not in specs[0].version:
+        try:
+            return Version(specs[0].version)
+        except InvalidVersion:
+            return None
     return None
 
 

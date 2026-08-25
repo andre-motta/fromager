@@ -533,6 +533,7 @@ class VariantInfo(pydantic.BaseModel):
         v: dict[str, typing.Any] | None,
         info: core_schema.ValidationInfo,
     ) -> dict[str, typing.Any]:
+        """Coerce ``None`` to empty dict for bare ``versions:`` YAML key."""
         if v is None:
             return {}
         return v
