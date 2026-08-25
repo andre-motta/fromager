@@ -646,7 +646,7 @@ class TestPhaseStart:
         with patch.object(
             tmp_context,
             "package_build_info",
-            return_value=Mock(pre_built=True),
+            return_value=Mock(pre_built=True, is_pre_built=Mock(return_value=True)),
         ):
             result = item.run(bt)
 
@@ -1914,7 +1914,9 @@ class TestPhaseProcessInstallDeps:
             patch.object(
                 tmp_context,
                 "package_build_info",
-                return_value=Mock(pre_built=False),
+                return_value=Mock(
+                    pre_built=False, is_pre_built=Mock(return_value=False)
+                ),
             ),
             patch.object(tmp_context.constraints, "get_constraint", return_value=None),
             patch.object(bt, "add_to_build_order") as mock_build_order,
@@ -1954,7 +1956,9 @@ class TestPhaseProcessInstallDeps:
             patch.object(
                 tmp_context,
                 "package_build_info",
-                return_value=Mock(pre_built=False),
+                return_value=Mock(
+                    pre_built=False, is_pre_built=Mock(return_value=False)
+                ),
             ),
             patch.object(tmp_context.constraints, "get_constraint", return_value=None),
             patch.object(bt, "add_to_build_order") as mock_build_order,
@@ -1999,7 +2003,9 @@ class TestPhaseProcessInstallDeps:
             patch.object(
                 tmp_context,
                 "package_build_info",
-                return_value=Mock(pre_built=False),
+                return_value=Mock(
+                    pre_built=False, is_pre_built=Mock(return_value=False)
+                ),
             ),
             patch.object(tmp_context.constraints, "get_constraint", return_value=None),
             patch.object(bt, "add_to_build_order") as mock_build_order,
@@ -2051,7 +2057,9 @@ class TestPhaseProcessInstallDeps:
             patch.object(
                 tmp_context,
                 "package_build_info",
-                return_value=Mock(pre_built=False),
+                return_value=Mock(
+                    pre_built=False, is_pre_built=Mock(return_value=False)
+                ),
             ),
             patch.object(tmp_context.constraints, "get_constraint", return_value=None),
             patch.object(bt, "add_to_build_order"),
@@ -2080,7 +2088,7 @@ class TestPhaseProcessInstallDeps:
             patch.object(
                 tmp_context,
                 "package_build_info",
-                return_value=Mock(pre_built=True),
+                return_value=Mock(pre_built=True, is_pre_built=Mock(return_value=True)),
             ),
             patch.object(
                 tmp_context.constraints,

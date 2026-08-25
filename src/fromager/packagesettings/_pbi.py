@@ -168,6 +168,34 @@ class PackageBuildInfo:
             return vi.pre_built
         return False
 
+    def is_pre_built(self, version: Version | None = None) -> bool:
+        """Version-aware pre-built check.
+
+        Resolution order:
+
+        1. Plugin hook ``is_pre_built`` (if version given and hook exists)
+        2. Version-specific YAML setting
+        3. Variant-wide default
+
+        .. versionadded:: 0.90.0
+        """
+        vi = self._ps.variants.get(self.variant)
+        if vi is None:
+            return False
+        if version is not None:
+            hook_fn = overrides.find_override_method(self.package, "is_pre_built")
+            if hook_fn is not None:
+                result = overrides.invoke(
+                    hook_fn, version=version, variant=self.variant
+                )
+                if result is not None:
+                    return bool(result)
+            pv = typing.cast(PackageVersion, version)
+            vs = vi.versions.get(pv)
+            if vs is not None and vs.pre_built is not None:
+                return vs.pre_built
+        return vi.pre_built
+
     @property
     def wheel_server_url(self) -> str | None:
         """Alternative package index for pre-build wheel"""
@@ -175,6 +203,24 @@ class PackageBuildInfo:
         if vi is not None and vi.wheel_server_url is not None:
             return str(vi.wheel_server_url)
         return None
+
+    def get_wheel_server_url(self, version: Version | None = None) -> str | None:
+        """Version-aware wheel server URL.
+
+        Returns the version-specific URL if defined, otherwise
+        falls back to the variant-wide default.
+
+        .. versionadded:: 0.90.0
+        """
+        vi = self._ps.variants.get(self.variant)
+        if vi is None:
+            return None
+        if version is not None:
+            pv = typing.cast(PackageVersion, version)
+            vs = vi.versions.get(pv)
+            if vs is not None and vs.wheel_server_url is not None:
+                return str(vs.wheel_server_url)
+        return str(vi.wheel_server_url) if vi.wheel_server_url is not None else None
 
     @property
     def override_module_name(self) -> str:
@@ -295,8 +341,7 @@ class PackageBuildInfo:
            the build tag from changelog, e.g. version `1.0.3+local.suffix`
            uses `1.0.3`.
         """
-        if self.pre_built:
-            # pre-built wheels have no built tag
+        if self.is_pre_built(version):
             return ()
         pv = typing.cast(PackageVersion, version)
         release = len(self.get_changelog(pv))

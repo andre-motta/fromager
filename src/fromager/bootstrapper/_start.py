@@ -72,6 +72,6 @@ class Start(Phase):
         # Must set pbi_pre_built before constructing PrepareSource so that
         # PrepareSource.background_work() immediately sees the correct value.
         pbi = bt.ctx.package_build_info(wi.req)
-        wi.pbi_pre_built = pbi.pre_built
+        wi.pbi_pre_built = pbi.is_pre_built(wi.resolved_version)
         wi.exclusive_build = pbi.exclusive_build
         return [PrepareSource(wi)]

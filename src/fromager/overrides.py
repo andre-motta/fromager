@@ -30,6 +30,7 @@ OVERRIDE_HOOK_NAMES: tuple[str, ...] = (
     "get_build_system_dependencies",
     "get_install_dependencies_of_sdist",
     "get_resolver_provider",
+    "is_pre_built",
     "prepare_source",
     "update_extra_environ",
 )
