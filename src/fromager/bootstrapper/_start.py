@@ -91,16 +91,6 @@ class Start(Phase):
         assert wi.resolved_version is not None
         assert wi.source_url is not None
 
-        # Add to graph (skip TOP_LEVEL, already added in _resolve_and_add_top_level)
-        if wi.req_type != RequirementType.TOP_LEVEL:
-            bt.add_to_graph(
-                wi.req,
-                wi.req_type,
-                wi.resolved_version,
-                wi.source_url,
-                wi.parent,
-            )
-
         wi.build_sdist_only = bt.sdist_only and not wi.is_build_requirement_context()
 
         if bt.has_been_seen(wi.req, wi.resolved_version, wi.build_sdist_only):
@@ -148,5 +138,15 @@ class Start(Phase):
                     f"{wi.req} {wi.resolved_version}: could not re-resolve URL "
                     f"for pre_built={wi.pbi_pre_built}, using original"
                 )
+
+        # Add to graph after re-resolution so the graph has the final URL
+        if wi.req_type != RequirementType.TOP_LEVEL:
+            bt.add_to_graph(
+                wi.req,
+                wi.req_type,
+                wi.resolved_version,
+                wi.source_url,
+                wi.parent,
+            )
 
         return [PrepareSource(wi)]
