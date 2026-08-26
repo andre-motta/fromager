@@ -31,15 +31,6 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def _default_is_pre_built(
-    *,
-    version: Version,
-    variant: str,
-) -> bool | None:
-    """Default ``is_pre_built`` hook returns ``None`` to defer to YAML config."""
-    return None
-
-
 def get_available_memory_gib() -> float:
     """available virtual memory in GiB"""
     return psutil.virtual_memory().available / (1024**3)
@@ -182,9 +173,8 @@ class PackageBuildInfo:
 
         Resolution order:
 
-        1. Plugin hook ``is_pre_built`` (if version given and hook exists)
-        2. Version-specific YAML setting
-        3. Variant-wide default
+        1. Version-specific YAML setting
+        2. Variant-wide default
 
         .. versionadded:: 0.95.0
         """
@@ -192,15 +182,6 @@ class PackageBuildInfo:
         if vi is None:
             return False
         if version is not None:
-            result = overrides.find_and_invoke(
-                self.package,
-                "is_pre_built",
-                _default_is_pre_built,
-                version=version,
-                variant=self.variant,
-            )
-            if result is not None:
-                return bool(result)
             pv = typing.cast(PackageVersion, Version(version.public))
             vs = vi.versions.get(pv)
             if vs is not None and vs.pre_built is not None:

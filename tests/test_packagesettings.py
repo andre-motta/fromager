@@ -658,43 +658,6 @@ def test_build_tag_version_specific_prebuilt(
     assert pbi.build_tag(Version("2.9.0")) == ()
 
 
-def test_is_pre_built_hook_overrides_yaml(
-    testdata_context: context.WorkContext,
-) -> None:
-    """Plugin hook takes precedence over YAML version-specific settings."""
-    pbi = testdata_context.settings.package_build_info(TEST_PKG)
-    assert pbi.variant == "cpu"
-
-    # Hook returns True for 2.8.0 (YAML says False)
-    with patch(
-        "fromager.overrides.find_and_invoke",
-        return_value=True,
-    ):
-        assert pbi.is_pre_built(Version("2.8.0")) is True
-
-    # Hook returns False for 2.9.0 (YAML says True)
-    with patch(
-        "fromager.overrides.find_and_invoke",
-        return_value=False,
-    ):
-        assert pbi.is_pre_built(Version("2.9.0")) is False
-
-    # Hook returns None (defers to YAML)
-    with patch(
-        "fromager.overrides.find_and_invoke",
-        return_value=None,
-    ):
-        assert pbi.is_pre_built(Version("2.9.0")) is True
-        assert pbi.is_pre_built(Version("2.8.0")) is False
-
-    # Without version, hook is not consulted
-    with patch(
-        "fromager.overrides.find_and_invoke",
-    ) as mock_invoke:
-        pbi.is_pre_built()
-        mock_invoke.assert_not_called()
-
-
 def test_get_wheel_server_urls_version_specific(
     testdata_context: context.WorkContext,
 ) -> None:

@@ -48,8 +48,7 @@ name.  If the module defines the requested method, it is called instead
 of the default; otherwise the default runs.
 
 Override hooks cover resolution, source acquisition, building,
-dependency extraction, build environment customization, and prebuilt
-wheel selection (``is_pre_built``, added in version 0.95.0).  Third-party
+dependency extraction, and build environment customization.  Third-party
 packages register overrides via the ``fromager.project_overrides``
 entry-point group in their ``pyproject.toml``, mapping a package name to
 a Python module.
